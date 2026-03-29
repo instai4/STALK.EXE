@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STALK.exe</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='8' fill='%230d0d0d'/%3E%3Ctext x='12' y='68' font-size='58' font-family='serif' fill='%23cc0000'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0a;--bg2:#0f0f0f;--card:#111111;--surface:#161616;
+      --border:#2a2a2a;--border2:#3a3a3a;
+      --txt:#d4c9b0;--txt2:#8a7f6a;--txt3:#4a4035;
+      --red:#cc0000;--red2:#ff2222;--red3:#ff6666;
+      --amber:#c8860a;--amber2:#f0a020;--yellow:#d4b44a;
+      --stamp:#cc0000;--paper:#1a1610;--ink:#d4c9b0;
+      --ff:'Special Elite',cursive;--fm:'JetBrains Mono',monospace;--fs:'Syne',sans-serif;
+      --spring:cubic-bezier(.34,1.56,.64,1);
+    }
+
+    html,body{min-height:100vh}
+    body{
+      font-family:var(--fm);background:var(--bg);color:var(--txt);
+      overflow-x:hidden;cursor:none;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%230a0a0a'/%3E%3Crect width='1' height='1' x='0' y='0' fill='%23111111' opacity='.4'/%3E%3C/svg%3E");
+    }
+
+    /* film grain overlay */
+    body::before{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+      opacity:.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat:repeat;background-size:128px}
+
+    /* vignette */
+    body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 40%,rgba(0,0,0,.7) 100%)}
+
+    /* CURSOR */
+    #cursor{pointer-events:none;position:fixed;z-index:9999;
+      width:12px;height:12px;
+      border:2px solid var(--red);border-radius:50%;
+      transform:translate(-50%,-50%);
+      transition:width .12s var(--spring),height .12s var(--spring)}
+    #cursor::after{content:'';position:absolute;top:50%;left:50%;
+      width:3px;height:3px;background:var(--red);border-radius:50%;
+      transform:translate(-50%,-50%)}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:54px;
+      background:rgba(10,10,10,.97);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 1.5rem;backdrop-filter:blur(10px)}
+    .nav-brand{display:flex;align-items:center;gap:.55rem;text-decoration:none}
+    .nav-logo-svg{width:38px;height:38px;flex-shrink:0;
+      filter:drop-shadow(0 0 8px rgba(204,0,0,.55));
+      transition:filter .2s}
+    .nav-brand:hover .nav-logo-svg{filter:drop-shadow(0 0 16px rgba(204,0,0,.85))}
+    .nav-title{font-family:var(--fs);font-size:1rem;font-weight:800;
+      color:var(--red);letter-spacing:.08em}
+    .nav-right{display:flex;align-items:center;gap:.5rem}
+    .nav-badge{font-family:var(--fm);font-size:.55rem;color:var(--txt3);
+      background:var(--surface);border:1px solid var(--border);
+      padding:3px 8px;border-radius:3px;letter-spacing:.1em;text-transform:uppercase}
+    .nav-link{width:30px;height:30px;border-radius:4px;background:var(--surface);
+      border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+      color:var(--txt2);font-size:.75rem;text-decoration:none;transition:all .12s}
+    .nav-link:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+    /* WRAPPER */
+    .wrapper{position:relative;z-index:1;width:100%;max-width:780px;
+      margin:0 auto;padding:72px 1.2rem 3rem;
+      display:flex;flex-direction:column;gap:1.6rem}
+
+    /* HERO */
+    .hero{text-align:center;padding:1.5rem 0 .5rem;
+      display:flex;flex-direction:column;align-items:center;gap:.7rem}
+
+    .classified-banner{
+      font-family:var(--fs);font-size:.55rem;font-weight:800;
+      letter-spacing:.35em;text-transform:uppercase;
+      color:var(--red);background:transparent;
+      border:2px solid var(--red);
+      padding:.3rem 1.2rem;border-radius:2px;
+      box-shadow:0 0 20px rgba(204,0,0,.2);
+      animation:flicker 4s ease-in-out infinite}
+    @keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.6}94%{opacity:1}97%{opacity:.8}98%{opacity:1}}
+
+    .hero-title{font-family:var(--fs);font-size:clamp(3rem,10vw,5.5rem);
+      font-weight:800;letter-spacing:-.02em;line-height:.9;
+      color:var(--txt);text-transform:uppercase}
+    .hero-title span{color:var(--red);
+      text-shadow:0 0 30px rgba(204,0,0,.4)}
+
+    .hero-sub{font-family:var(--fm);font-size:.68rem;color:var(--txt3);
+      letter-spacing:.18em;text-transform:uppercase}
+
+    .hero-desc{font-family:var(--fm);font-size:.72rem;color:var(--txt2);
+      max-width:420px;line-height:1.7;text-align:center;
+      border:1px solid var(--border);padding:.7rem 1.2rem;
+      background:var(--surface);border-radius:4px}
+
+    /* SEARCH BOX */
+    .search-card{background:var(--card);border:1px solid var(--border2);
+      border-radius:8px;padding:1.4rem;
+      box-shadow:0 0 40px rgba(204,0,0,.06)}
+
+    .search-label{font-family:var(--fm);font-size:.58rem;color:var(--txt3);
+      text-transform:uppercase;letter-spacing:.2em;
+      display:flex;align-items:center;gap:.4rem;margin-bottom:.7rem}
+    .search-label i{color:var(--red);font-size:.6rem}
+
+    .search-row{display:flex;gap:.6rem;align-items:stretch}
+    .search-input-wrap{
+      flex:1;display:flex;align-items:center;
+      background:var(--bg2);border:1px solid var(--border2);
+      border-radius:6px;overflow:hidden;
+      transition:border-color .15s,box-shadow .15s}
+    .search-input-wrap:focus-within{
+      border-color:var(--red);box-shadow:0 0 0 3px rgba(204,0,0,.1)}
+    .search-gh-badge{
+      flex-shrink:0;padding:0 .75rem;
+      font-family:var(--fm);font-size:.72rem;color:var(--txt3);
+      border-right:1px solid var(--border2);
+      background:var(--surface);
+      display:flex;align-items:center;gap:.35rem;
+      white-space:nowrap;user-select:none}
+    .search-gh-badge i{font-size:.78rem}
+    #gh-input{
+      flex:1;min-width:0;
+      padding:.8rem .9rem;
+      background:transparent;border:none;outline:none;
+      color:var(--txt);font-family:var(--fm);font-size:.82rem}
+    #gh-input::placeholder{color:var(--txt3)}
+
+    .stalk-btn{padding:.8rem 1.4rem;border-radius:6px;
+      border:2px solid var(--red);background:var(--red);
+      color:#fff;font-family:var(--fs);font-size:.95rem;font-weight:700;
+      cursor:pointer;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+      box-shadow:4px 4px 0 rgba(204,0,0,.25);
+      transition:all .15s var(--spring);
+      display:flex;align-items:center;gap:.5rem}
+    .stalk-btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 rgba(204,0,0,.25)}
+    .stalk-btn:active{transform:translate(1px,1px);box-shadow:none}
+    .stalk-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+    /* LOADING */
+    .loading-wrap{display:none;flex-direction:column;gap:.6rem;
+      padding:1.2rem;background:var(--card);border:1px solid var(--border);
+      border-radius:8px;animation:fade-in .2s ease}
+    .loading-wrap.show{display:flex}
+    @keyframes fade-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .loading-step{font-family:var(--fm);font-size:.68rem;color:var(--txt3);
+      display:flex;align-items:center;gap:.6rem;
+      animation:step-in .3s var(--spring)}
+    @keyframes step-in{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+    .loading-step i{color:var(--red);font-size:.65rem;width:14px;text-align:center}
+    .loading-step.done{color:var(--amber2)}
+    .loading-step.done i{color:var(--amber2)}
+    .load-bar{height:2px;background:var(--surface);border-radius:1px;overflow:hidden;
+      border:1px solid var(--border)}
+    .load-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--amber));
+      border-radius:1px;width:0;transition:width .4s ease}
+
+    /* FBI FILE OUTPUT */
+    .file-wrap{display:none;flex-direction:column;gap:0;
+      animation:file-in .5s var(--spring)}
+    .file-wrap.show{display:flex}
+    @keyframes file-in{from{opacity:0;transform:translateY(20px) rotate(-1deg)}to{opacity:1;transform:none}}
+
+    /* file header */
+    .file-header{
+      background:var(--red);padding:1rem 1.5rem;
+      border-radius:8px 8px 0 0;
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:.6rem}
+    .fh-left{display:flex;align-items:center;gap:.8rem}
+    .fh-seal{width:44px;height:44px;border-radius:50%;
+      background:rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.3);
+      display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+    .fh-title{font-family:var(--fs);font-size:.75rem;font-weight:800;
+      color:rgba(255,255,255,.7);letter-spacing:.2em;text-transform:uppercase}
+    .fh-name{font-family:var(--fs);font-size:1.1rem;font-weight:800;color:#fff}
+    .fh-right{display:flex;flex-direction:column;align-items:flex-end;gap:.2rem}
+    .fh-case{font-family:var(--fm);font-size:.58rem;
+      color:rgba(255,255,255,.6);letter-spacing:.12em;text-transform:uppercase}
+    .fh-status{font-family:var(--fs);font-size:.7rem;font-weight:700;
+      color:#fff;background:rgba(0,0,0,.3);
+      padding:2px 10px;border-radius:3px;letter-spacing:.1em}
+
+    /* subject card */
+    .subject-card{
+      background:var(--paper);border:1px solid var(--border2);
+      border-top:none;padding:1.2rem 1.5rem;
+      display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+    .subject-avatar{width:64px;height:64px;border-radius:4px;
+      border:3px solid var(--border2);overflow:hidden;flex-shrink:0;
+      background:var(--surface);position:relative}
+    .subject-avatar img{width:100%;height:100%;object-fit:cover;
+      filter:sepia(.3) contrast(1.1)}
+    .subject-avatar::after{content:'SUBJECT';position:absolute;bottom:0;left:0;right:0;
+      background:rgba(204,0,0,.85);font-family:var(--fm);font-size:.38rem;
+      color:#fff;text-align:center;padding:2px;letter-spacing:.1em}
+    .subject-info{flex:1}
+    .subject-name{font-family:var(--ff);font-size:1.2rem;color:var(--txt);margin-bottom:.2rem}
+    .subject-meta{display:flex;flex-wrap:wrap;gap:.6rem}
+    .subject-tag{font-family:var(--fm);font-size:.58rem;color:var(--txt3);
+      background:var(--surface);border:1px solid var(--border);
+      padding:2px 8px;border-radius:2px;
+      display:flex;align-items:center;gap:.3rem}
+    .subject-tag i{font-size:.55rem;color:var(--amber)}
+    .subject-links{display:flex;gap:.5rem;margin-top:.5rem}
+    .subject-link{font-family:var(--fm);font-size:.58rem;color:var(--red);
+      text-decoration:none;display:flex;align-items:center;gap:.25rem}
+    .subject-link:hover{color:var(--red2)}
+
+    /* TABS */
+    .tabs-row{background:var(--bg2);border:1px solid var(--border2);
+      border-top:none;display:flex;overflow-x:auto}
+    .tabs-row::-webkit-scrollbar{height:2px}
+    .tabs-row::-webkit-scrollbar-thumb{background:var(--red)}
+    .tab-btn{padding:.7rem 1.2rem;font-family:var(--fm);font-size:.62rem;
+      font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+      color:var(--txt3);cursor:pointer;border:none;background:transparent;
+      border-bottom:2px solid transparent;white-space:nowrap;
+      transition:all .15s;display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+    .tab-btn:hover{color:var(--txt2);background:rgba(255,255,255,.02)}
+    .tab-btn.active{color:var(--red);border-bottom-color:var(--red);
+      background:rgba(204,0,0,.05)}
+    .tab-btn i{font-size:.65rem}
+
+    /* TAB PANELS */
+    .tab-panels{background:var(--paper);border:1px solid var(--border2);
+      border-top:none;border-radius:0 0 8px 8px;min-height:300px}
+    .tab-panel{display:none;padding:1.4rem 1.5rem;animation:fade-in .2s ease}
+    .tab-panel.active{display:block}
+
+    /* SECTION LABEL */
+    .sec-lbl{font-family:var(--fm);font-size:.55rem;color:var(--red);
+      text-transform:uppercase;letter-spacing:.2em;
+      display:flex;align-items:center;gap:.4rem;margin-bottom:.8rem;
+      padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+    .sec-lbl i{font-size:.6rem}
+
+    /* PERSONALITY TRAITS */
+    .trait-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.7rem;margin-bottom:1rem}
+    .trait{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:.7rem .9rem}
+    .trait-name{font-family:var(--fm);font-size:.58rem;color:var(--txt3);
+      text-transform:uppercase;letter-spacing:.12em;margin-bottom:.35rem;
+      display:flex;align-items:center;justify-content:space-between}
+    .trait-score{font-family:var(--fs);font-size:.75rem;font-weight:800;color:var(--amber2)}
+    .trait-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:.3rem}
+    .trait-fill{height:100%;border-radius:2px;
+      background:linear-gradient(90deg,var(--red),var(--amber));
+      transition:width 1s var(--spring)}
+    .trait-desc{font-family:var(--fm);font-size:.62rem;color:var(--txt2);line-height:1.5}
+
+    /* LANG CHART */
+    .lang-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+    .lang-row{display:flex;align-items:center;gap:.7rem}
+    .lang-name{font-family:var(--fm);font-size:.65rem;font-weight:700;
+      color:var(--txt);min-width:90px;flex-shrink:0}
+    .lang-bar-wrap{flex:1;height:10px;background:var(--border);border-radius:2px;overflow:hidden}
+    .lang-bar-fill{height:100%;border-radius:2px;transition:width 1.2s var(--spring)}
+    .lang-pct{font-family:var(--fm);font-size:.6rem;color:var(--txt3);min-width:36px;text-align:right}
+
+    /* REPO LIST */
+    .repo-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+    .repo-item{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:.65rem .9rem;
+      display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+    .repo-name{font-family:var(--fm);font-size:.7rem;font-weight:700;color:var(--red)}
+    .repo-desc{font-family:var(--fm);font-size:.6rem;color:var(--txt3);
+      margin-top:.1rem;line-height:1.4}
+    .repo-meta{display:flex;gap:.5rem;flex-shrink:0}
+    .repo-badge{font-family:var(--fm);font-size:.55rem;color:var(--txt3);
+      background:var(--card);border:1px solid var(--border);
+      padding:1px 6px;border-radius:2px;
+      display:flex;align-items:center;gap:.25rem}
+    .repo-badge i{font-size:.5rem;color:var(--amber)}
+
+    /* AI TEXT BLOCKS */
+    .ai-block{background:var(--surface);border:1px solid var(--border);
+      border-left:3px solid var(--red);
+      border-radius:0 4px 4px 0;
+      padding:.9rem 1.1rem;margin-bottom:.8rem;font-size:.78rem;line-height:1.7;
+      color:var(--txt);font-family:var(--ff)}
+    .ai-block.amber{border-left-color:var(--amber)}
+    .ai-block.yellow{border-left-color:var(--yellow)}
+    .ai-block p{margin-bottom:.5rem}
+    .ai-block p:last-child{margin-bottom:0}
+
+    /* VERDICT */
+    .verdict-box{
+      background:rgba(204,0,0,.06);border:2px solid var(--red);
+      border-radius:6px;padding:1.2rem;margin-bottom:.8rem;text-align:center;position:relative}
+    .verdict-stamp{
+      font-family:var(--fs);font-size:2.5rem;font-weight:800;
+      color:var(--red);opacity:.15;position:absolute;
+      top:50%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);
+      pointer-events:none;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+    .verdict-title{font-family:var(--fs);font-size:1rem;font-weight:800;
+      color:var(--red);margin-bottom:.4rem;letter-spacing:.06em}
+    .verdict-text{font-family:var(--ff);font-size:.85rem;color:var(--txt);line-height:1.6}
+
+    /* DANGER METER */
+    .danger-wrap{margin-bottom:1rem}
+    .danger-label{display:flex;justify-content:space-between;margin-bottom:.35rem}
+    .danger-lbl-txt{font-family:var(--fm);font-size:.58rem;color:var(--txt3);
+      text-transform:uppercase;letter-spacing:.15em;display:flex;align-items:center;gap:.3rem}
+    .danger-lbl-txt i{color:var(--red)}
+    .danger-val{font-family:var(--fs);font-size:.95rem;font-weight:800;color:var(--red)}
+    .danger-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+    .danger-fill{height:100%;border-radius:5px;
+      background:linear-gradient(90deg,var(--amber2),var(--red2));
+      transition:width 1.5s var(--spring);box-shadow:0 0 8px rgba(204,0,0,.4)}
+
+    /* ACTIONS */
+    .actions-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+    .act-btn{flex:1;min-width:130px;padding:.6rem 1rem;border-radius:5px;
+      border:1px solid var(--border2);background:var(--surface);
+      color:var(--txt2);font-family:var(--fm);font-size:.6rem;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;
+      transition:all .12s;text-transform:uppercase;letter-spacing:.08em}
+    .act-btn:hover{border-color:var(--red);color:var(--red)}
+    .act-btn.copy:hover{border-color:var(--amber2);color:var(--amber2)}
+
+    /* SHARE CARD (hidden, for copy) */
+    .redact{background:var(--red);color:var(--red);border-radius:2px;cursor:default}
+
+    /* STATS ROW */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.6rem;margin-bottom:1rem}
+    .stat-box{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:.7rem;text-align:center}
+    .stat-val{font-family:var(--fs);font-size:1.3rem;font-weight:800;color:var(--red);
+      display:block;margin-bottom:.15rem}
+    .stat-lbl{font-family:var(--fm);font-size:.52rem;color:var(--txt3);
+      text-transform:uppercase;letter-spacing:.1em}
+
+    /* FOOTER */
+    .footer-bar{position:relative;z-index:1;width:100%;max-width:780px;margin:0 auto;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.6rem 1.2rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.4rem}
+    .footer-credit{font-family:var(--fm);font-size:.58rem;color:var(--txt3)}
+    .footer-credit a{color:var(--red);text-decoration:none;font-weight:700}
+    .footer-links{display:flex;gap:.4rem}
+    .footer-links a{width:26px;height:26px;border-radius:4px;background:var(--surface);
+      border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+      color:var(--txt3);font-size:.72rem;text-decoration:none;transition:all .12s}
+    .footer-links a:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+    @media(max-width:520px){
+      .search-row{flex-direction:column}
+      .stalk-btn{width:100%;justify-content:center}
+      .file-header{flex-direction:column}
+      .fh-right{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <!-- STALK.exe Logo: magnifying glass over a geometric eye, no background -->
+    <svg class="nav-logo-svg" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer broken ring (surveillance circle) -->
+      <circle cx="16" cy="16" r="12" stroke="#cc0000" stroke-width="1.8" stroke-dasharray="8 3" opacity=".5"/>
+      <!-- Magnifying glass circle -->
+      <circle cx="15" cy="15" r="8.5" stroke="#cc0000" stroke-width="2" fill="none"/>
+      <!-- Eye iris inner -->
+      <circle cx="15" cy="15" r="4.5" stroke="#cc0000" stroke-width="1.4" fill="none" opacity=".7"/>
+      <!-- Pupil -->
+      <circle cx="15" cy="15" r="2" fill="#cc0000"/>
+      <!-- Gleam dot -->
+      <circle cx="17" cy="13" r=".8" fill="#ff6666" opacity=".9"/>
+      <!-- Handle -->
+      <line x1="21.5" y1="21.5" x2="33" y2="33" stroke="#cc0000" stroke-width="2.8" stroke-linecap="round"/>
+      <!-- Handle grip marks -->
+      <line x1="24" y1="26" x2="26" y2="24" stroke="#8a2020" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+      <line x1="26.5" y1="28.5" x2="28.5" y2="26.5" stroke="#8a2020" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+      <!-- Corner scan brackets — FBI aesthetic -->
+      <path d="M4 9 L4 4 L9 4"   stroke="#cc0000" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".55"/>
+      <path d="M23 4 L28 4 L28 9" stroke="#cc0000" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".55"/>
+      <path d="M4 23 L4 28 L9 28" stroke="#cc0000" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".55"/>
+    </svg>
+    <span class="nav-title">STALK.exe</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-badge">GitHub Profiler &middot; ANURAG.exe</span>
+    <a class="nav-link" href="https://github.com/instai4" target="_blank"><i class="fa-brands fa-github"></i></a>
+    <a class="nav-link" href="https://instai4.github.io/PORT-FOLIO/" target="_blank"><i class="fa-solid fa-globe"></i></a>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="classified-banner">Classified &mdash; Level 5 Clearance Required</div>
+    <h1 class="hero-title">STALK<span>.</span>exe</h1>
+    <span class="hero-sub">GitHub Psychological Profiler &mdash; Unauthorized Use Prohibited</span>
+    <p class="hero-desc">Enter any GitHub username. We'll pull their repos, languages, stats and commit patterns — then let AI build a full psychological profile. No one is safe.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-card">
+    <div class="search-label"><i class="fa-solid fa-crosshairs"></i> Identify Target</div>
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <span class="search-gh-badge"><i class="fa-brands fa-github"></i> github.com/</span>
+        <input type="text" id="gh-input" placeholder="username or full URL" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <button class="stalk-btn" id="stalk-btn" onclick="startStalk()">
+        <i class="fa-solid fa-magnifying-glass"></i> STALK
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-wrap" id="loading-wrap">
+    <div class="load-bar"><div class="load-fill" id="load-fill"></div></div>
+    <div id="loading-steps"></div>
+  </div>
+
+  <!-- FBI FILE OUTPUT -->
+  <div class="file-wrap" id="file-wrap">
+
+    <!-- FILE HEADER -->
+    <div class="file-header">
+      <div class="fh-left">
+        <div class="fh-seal"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <div class="fh-title">STALK.exe &mdash; Psychological Assessment File</div>
+          <div class="fh-name" id="fh-name">SUBJECT NAME</div>
+        </div>
+      </div>
+      <div class="fh-right">
+        <div class="fh-case" id="fh-case">CASE #000000</div>
+        <div class="fh-status">PROFILE COMPLETE</div>
+      </div>
+    </div>
+
+    <!-- SUBJECT CARD -->
+    <div class="subject-card">
+      <div class="subject-avatar">
+        <img id="subj-avatar" src="" alt="subject">
+      </div>
+      <div class="subject-info">
+        <div class="subject-name" id="subj-name">Loading...</div>
+        <div class="subject-meta" id="subj-meta"></div>
+        <div class="subject-links" id="subj-links"></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-row">
+      <button class="tab-btn active" data-tab="personality" onclick="switchTab('personality')">
+        <i class="fa-solid fa-brain"></i> Personality
+      </button>
+      <button class="tab-btn" data-tab="darkside" onclick="switchTab('darkside')">
+        <i class="fa-solid fa-skull"></i> Dark Side
+      </button>
+      <button class="tab-btn" data-tab="stack" onclick="switchTab('stack')">
+        <i class="fa-solid fa-code"></i> Stack Analysis
+      </button>
+      <button class="tab-btn" data-tab="prediction" onclick="switchTab('prediction')">
+        <i class="fa-solid fa-crystal-ball"></i> Prediction
+      </button>
+      <button class="tab-btn" data-tab="verdict" onclick="switchTab('verdict')">
+        <i class="fa-solid fa-gavel"></i> Verdict
+      </button>
+    </div>
+
+    <!-- TAB PANELS -->
+    <div class="tab-panels">
+
+      <!-- PERSONALITY -->
+      <div class="tab-panel active" id="tab-personality">
+        <div class="sec-lbl"><i class="fa-solid fa-brain"></i> Psychological Trait Analysis</div>
+        <div class="stats-grid" id="gh-stats"></div>
+        <div class="trait-grid" id="trait-grid"></div>
+        <div class="sec-lbl" style="margin-top:.5rem"><i class="fa-solid fa-comment"></i> Behavioral Assessment</div>
+        <div class="ai-block" id="personality-text"></div>
+      </div>
+
+      <!-- DARK SIDE -->
+      <div class="tab-panel" id="tab-darkside">
+        <div class="sec-lbl"><i class="fa-solid fa-skull"></i> Hidden Behavioral Patterns</div>
+        <div class="ai-block amber" id="darkside-text"></div>
+        <div class="sec-lbl"><i class="fa-solid fa-triangle-exclamation"></i> Threat Assessment</div>
+        <div class="danger-wrap">
+          <div class="danger-label">
+            <span class="danger-lbl-txt"><i class="fa-solid fa-radiation"></i> Danger Level</span>
+            <span class="danger-val" id="danger-val">0/10</span>
+          </div>
+          <div class="danger-track">
+            <div class="danger-fill" id="danger-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="ai-block amber" id="threat-text"></div>
+      </div>
+
+      <!-- STACK ANALYSIS -->
+      <div class="tab-panel" id="tab-stack">
+        <div class="sec-lbl"><i class="fa-solid fa-chart-bar"></i> Language Distribution</div>
+        <div class="lang-list" id="lang-list"></div>
+        <div class="sec-lbl"><i class="fa-solid fa-folder"></i> Top Repositories</div>
+        <div class="repo-list" id="repo-list"></div>
+        <div class="sec-lbl"><i class="fa-solid fa-microchip"></i> Tech Personality Type</div>
+        <div class="ai-block" id="stack-text"></div>
+      </div>
+
+      <!-- PREDICTION -->
+      <div class="tab-panel" id="tab-prediction">
+        <div class="sec-lbl"><i class="fa-solid fa-crystal-ball"></i> Future Trajectory Analysis</div>
+        <div class="ai-block yellow" id="prediction-text"></div>
+        <div class="sec-lbl" style="margin-top:.5rem"><i class="fa-solid fa-code-branch"></i> Alternate Timeline</div>
+        <div class="ai-block yellow" id="alternate-text"></div>
+      </div>
+
+      <!-- VERDICT -->
+      <div class="tab-panel" id="tab-verdict">
+        <div class="sec-lbl"><i class="fa-solid fa-gavel"></i> Final Psychological Verdict</div>
+        <div class="verdict-box">
+          <div class="verdict-stamp" id="verdict-stamp">ANALYZING</div>
+          <div class="verdict-title" id="verdict-title">VERDICT</div>
+          <div class="verdict-text" id="verdict-text">Processing...</div>
+        </div>
+        <div class="sec-lbl"><i class="fa-solid fa-share-nodes"></i> Actions</div>
+        <div class="actions-row">
+          <button class="act-btn copy" onclick="copyProfile()"><i class="fa-solid fa-copy"></i> Copy Profile</button>
+          <button class="act-btn" onclick="shareX()"><i class="fa-brands fa-x-twitter"></i> Share on X</button>
+          <button class="act-btn" onclick="stalkAnother()"><i class="fa-solid fa-rotate"></i> New Target</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-bar">
+  <span class="footer-credit">Built by <a href="https://instai4.github.io/PORT-FOLIO/" target="_blank">ANURAG RAJPUT</a> &middot; Data Science Student @ DBUU</span>
+  <div class="footer-links">
+    <a href="https://github.com/instai4" target="_blank"><i class="fa-brands fa-github"></i></a>
+    <a href="https://www.linkedin.com/in/anurag-singh-43230a380/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+    <a href="https://instai4.github.io/PORT-FOLIO/" target="_blank"><i class="fa-solid fa-globe"></i></a>
+  </div>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px'; });
+document.querySelectorAll('a,button,input').forEach(el => {
+  el.addEventListener('mouseenter',()=>{ cur.style.width='28px';cur.style.height='28px'; });
+  el.addEventListener('mouseleave',()=>{ cur.style.width='12px';cur.style.height='12px'; });
+});
+
+/* ── ENTER KEY ── */
+document.getElementById('gh-input').addEventListener('keydown', e => { if(e.key==='Enter') startStalk(); });
+
+/* ── STATE ── */
+let lastData = null;
+let lastUsername = '';
+
+/* ── LANG COLORS ── */
+const LANG_COLORS = {
+  JavaScript:'#f1e05a',TypeScript:'#3178c6',Python:'#3572A5',
+  Java:'#b07219',C:'#555555','C++':'#f34b7d',HTML:'#e34c26',
+  CSS:'#563d7c',Ruby:'#701516',Go:'#00ADD8',Rust:'#dea584',
+  Swift:'#ffac45',Kotlin:'#A97BFF',Shell:'#89e051',
+  PHP:'#4F5D95',Dart:'#00B4AB',Vue:'#41b883',
+  Jupyter:'#DA5B0B',R:'#198CE7',default:'#cc0000'
+};
+
+/* ── LOADING STEPS ── */
+const STEPS = [
+  { icon:'fa-satellite-dish', text:'Locating target on GitHub servers...' },
+  { icon:'fa-database',       text:'Extracting repository intelligence...' },
+  { icon:'fa-code-branch',    text:'Analyzing commit patterns...' },
+  { icon:'fa-brain',          text:'Running psychological profiling AI...' },
+  { icon:'fa-file-shield',    text:'Compiling classified dossier...' },
+];
+
+let stepInterval;
+function startLoadingSteps() {
+  const container = document.getElementById('loading-steps');
+  container.innerHTML = '';
+  let i = 0;
+  const bar = document.getElementById('load-fill');
+  const addStep = () => {
+    if (i >= STEPS.length) return;
+    const s = STEPS[i];
+    const div = document.createElement('div');
+    div.className = 'loading-step';
+    div.innerHTML = `<i class="fa-solid ${s.icon}"></i><span>${s.text}</span>`;
+    container.appendChild(div);
+    bar.style.width = ((i+1)/STEPS.length*100) + '%';
+    i++;
+  };
+  addStep();
+  stepInterval = setInterval(addStep, 900);
+}
+function stopLoadingSteps() {
+  clearInterval(stepInterval);
+  document.querySelectorAll('.loading-step').forEach(s => s.classList.add('done'));
+}
+
+/* ── TAB SWITCHER ── */
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id==='tab-'+name));
+}
+
+/* ── MAIN STALK FUNCTION ── */
+async function startStalk() {
+  const raw = document.getElementById('gh-input').value.trim();
+  if (!raw) { alert('Enter a GitHub username first.'); return; }
+
+  // Strip any format the user might paste:
+  // https://github.com/instai4  →  instai4
+  // github.com/instai4          →  instai4
+  // @instai4                    →  instai4
+  // instai4                     →  instai4
+  const username = raw
+    .replace(/https?:\/\//i, '')
+    .replace(/github\.com\//i, '')
+    .replace(/^@/, '')
+    .split('/')[0]   // drop any trailing path like /repos
+    .split('?')[0]   // drop query strings
+    .trim();
+
+  if (!username) { alert('Could not extract a username. Try just: instai4'); return; }
+
+  lastUsername = username;
+  document.getElementById('file-wrap').classList.remove('show');
+  document.getElementById('loading-wrap').classList.add('show');
+  document.getElementById('load-fill').style.width = '0%';
+  document.getElementById('stalk-btn').disabled = true;
+  startLoadingSteps();
+
+  try {
+    // 1. Fetch GitHub user
+    const userRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`);
+    if (!userRes.ok) throw new Error(userRes.status === 404 ? 'User not found on GitHub.' : 'GitHub API error.');
+    const user = await userRes.json();
+
+    // 2. Fetch repos
+    const reposRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`);
+    const repos = reposRes.ok ? await reposRes.json() : [];
+
+    // 3. Build language map
+    const langMap = {};
+    repos.forEach(r => { if(r.language) langMap[r.language] = (langMap[r.language]||0) + 1; });
+    const totalLangCount = Object.values(langMap).reduce((a,b)=>a+b,0) || 1;
+    const langsSorted = Object.entries(langMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    // 4. Build data object for API
+    const profileData = {
+      username: user.login,
+      name: user.name || user.login,
+      bio: user.bio || '',
+      location: user.location || '',
+      company: user.company || '',
+      publicRepos: user.public_repos,
+      followers: user.followers,
+      following: user.following,
+      createdAt: user.created_at,
+      topLanguages: langsSorted.map(([l,c])=>({ lang:l, pct:Math.round(c/totalLangCount*100) })),
+      topRepos: repos.slice(0,6).map(r=>({
+        name: r.name,
+        desc: r.description || '',
+        stars: r.stargazers_count,
+        forks: r.forks_count,
+        lang: r.language || ''
+      })),
+      totalStars: repos.reduce((a,r)=>a+r.stargazers_count,0),
+    };
+
+    // 5. Call AI
+    const aiRes = await fetch('/api/stalk', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ profileData })
+    });
+    if (!aiRes.ok) throw new Error('AI profiling failed.');
+    const aiData = await aiRes.json();
+
+    stopLoadingSteps();
+    setTimeout(() => {
+      document.getElementById('loading-wrap').classList.remove('show');
+      renderProfile(user, profileData, aiData);
+    }, 500);
+
+  } catch(err) {
+    stopLoadingSteps();
+    document.getElementById('loading-wrap').classList.remove('show');
+    alert('Error: ' + err.message);
+  } finally {
+    document.getElementById('stalk-btn').disabled = false;
+  }
+}
+
+/* ── RENDER ── */
+function renderProfile(user, data, ai) {
+  lastData = { user, data, ai };
+
+  // Header
+  document.getElementById('fh-name').textContent = (data.name || data.username).toUpperCase();
+  document.getElementById('fh-case').textContent = 'CASE #' + Math.random().toString(36).substr(2,6).toUpperCase();
+
+  // Subject card
+  document.getElementById('subj-avatar').src = user.avatar_url;
+  document.getElementById('subj-name').textContent = data.name || data.username;
+
+  const meta = document.getElementById('subj-meta');
+  meta.innerHTML = [
+    data.location && `<span class="subject-tag"><i class="fa-solid fa-location-dot"></i>${data.location}</span>`,
+    data.company  && `<span class="subject-tag"><i class="fa-solid fa-building"></i>${data.company}</span>`,
+    `<span class="subject-tag"><i class="fa-brands fa-github"></i>@${data.username}</span>`,
+    data.bio      && `<span class="subject-tag"><i class="fa-solid fa-quote-left"></i>${data.bio.slice(0,50)}${data.bio.length>50?'...':''}</span>`,
+  ].filter(Boolean).join('');
+
+  document.getElementById('subj-links').innerHTML = `
+    <a class="subject-link" href="https://github.com/${data.username}" target="_blank"><i class="fa-brands fa-github"></i>github.com/${data.username}</a>
+  `;
+
+  // Stats
+  const accountAge = Math.floor((Date.now()-new Date(data.createdAt))/(1000*60*60*24*365));
+  document.getElementById('gh-stats').innerHTML = [
+    { val: data.publicRepos, lbl:'Repos' },
+    { val: data.followers,   lbl:'Followers' },
+    { val: data.following,   lbl:'Following' },
+    { val: data.totalStars,  lbl:'Total Stars' },
+    { val: accountAge+'y',   lbl:'Account Age' },
+    { val: data.topLanguages[0]?.lang || 'N/A', lbl:'Top Language' },
+  ].map(s=>`<div class="stat-box"><span class="stat-val">${s.val}</span><span class="stat-lbl">${s.lbl}</span></div>`).join('');
+
+  // Traits
+  const traits = ai.traits || [];
+  document.getElementById('trait-grid').innerHTML = traits.map(t=>`
+    <div class="trait">
+      <div class="trait-name">${t.name}<span class="trait-score">${t.score}/10</span></div>
+      <div class="trait-bar"><div class="trait-fill" style="width:0%" data-w="${t.score*10}%"></div></div>
+      <div class="trait-desc">${t.desc}</div>
+    </div>`).join('');
+
+  // Personality text
+  const pt = (ai.personality||'').split('\n').filter(l=>l.trim());
+  document.getElementById('personality-text').innerHTML = pt.map(l=>`<p>${l}</p>`).join('');
+
+  // Dark side
+  const dt = (ai.darkside||'').split('\n').filter(l=>l.trim());
+  document.getElementById('darkside-text').innerHTML = dt.map(l=>`<p>${l}</p>`).join('');
+
+  const dangerScore = Math.min(10, Math.max(1, ai.dangerScore||5));
+  document.getElementById('danger-val').textContent = dangerScore+'/10';
+  document.getElementById('threat-text').innerHTML = `<p>${ai.threat||''}</p>`;
+
+  // Stack
+  const ll = document.getElementById('lang-list');
+  ll.innerHTML = data.topLanguages.map(({lang,pct})=>`
+    <div class="lang-row">
+      <span class="lang-name">${lang}</span>
+      <div class="lang-bar-wrap">
+        <div class="lang-bar-fill" style="width:0%;background:${LANG_COLORS[lang]||LANG_COLORS.default}" data-w="${pct}%"></div>
+      </div>
+      <span class="lang-pct">${pct}%</span>
+    </div>`).join('');
+
+  const rl = document.getElementById('repo-list');
+  rl.innerHTML = data.topRepos.map(r=>`
+    <a class="repo-item" href="https://github.com/${data.username}/${r.name}" target="_blank" style="text-decoration:none">
+      <div>
+        <div class="repo-name"><i class="fa-solid fa-folder" style="margin-right:.35rem;font-size:.6rem"></i>${r.name}</div>
+        ${r.desc?`<div class="repo-desc">${r.desc.slice(0,80)}${r.desc.length>80?'...':''}</div>`:''}
+      </div>
+      <div class="repo-meta">
+        ${r.lang?`<span class="repo-badge" style="color:${LANG_COLORS[r.lang]||LANG_COLORS.default}">${r.lang}</span>`:''}
+        <span class="repo-badge"><i class="fa-solid fa-star"></i>${r.stars}</span>
+        <span class="repo-badge"><i class="fa-solid fa-code-branch"></i>${r.forks}</span>
+      </div>
+    </a>`).join('');
+
+  const st = (ai.stackAnalysis||'').split('\n').filter(l=>l.trim());
+  document.getElementById('stack-text').innerHTML = st.map(l=>`<p>${l}</p>`).join('');
+
+  // Prediction
+  const prt = (ai.prediction||'').split('\n').filter(l=>l.trim());
+  document.getElementById('prediction-text').innerHTML = prt.map(l=>`<p>${l}</p>`).join('');
+  const alt = (ai.alternate||'').split('\n').filter(l=>l.trim());
+  document.getElementById('alternate-text').innerHTML = alt.map(l=>`<p>${l}</p>`).join('');
+
+  // Verdict
+  document.getElementById('verdict-stamp').textContent = ai.verdictStamp || 'ANALYZED';
+  document.getElementById('verdict-title').textContent = ai.verdictTitle || 'FINAL VERDICT';
+  document.getElementById('verdict-text').textContent = ai.verdictText || '';
+
+  // Show file
+  document.getElementById('file-wrap').classList.add('show');
+  document.getElementById('file-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.trait-fill[data-w],.lang-bar-fill[data-w]').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+    document.getElementById('danger-fill').style.width = (dangerScore*10)+'%';
+  }, 200);
+}
+
+/* ── COPY ── */
+function copyProfile() {
+  if (!lastData) return;
+  const { data, ai } = lastData;
+  const text = `STALK.exe — GitHub Psychological Profile
+Subject: @${data.username} (${data.name})
+Repos: ${data.publicRepos} | Followers: ${data.followers} | Stars: ${data.totalStars}
+Top Language: ${data.topLanguages[0]?.lang || 'N/A'}
+
+PERSONALITY:
+${ai.personality || ''}
+
+DARK SIDE:
+${ai.darkside || ''}
+
+VERDICT: ${ai.verdictTitle}
+${ai.verdictText}
+
+— Profiled by STALK.exe | github.com/instai4`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.currentTarget;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+    btn.style.color = 'var(--amber2)';
+    btn.style.borderColor = 'var(--amber2)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color=''; btn.style.borderColor=''; }, 2000);
+  });
+}
+
+/* ── SHARE X ── */
+function shareX() {
+  if (!lastData) return;
+  const { data, ai } = lastData;
+  const text = encodeURIComponent(
+    `I just ran @${data.username} through STALK.exe — the AI GitHub profiler.\n\nVerdict: "${ai.verdictTitle}"\n\nDanger Score: ${ai.dangerScore}/10\n\nTry it yourself 👇\n— by @instai4`
+  );
+  window.open('https://x.com/intent/tweet?text='+text, '_blank');
+}
+
+/* ── NEW TARGET ── */
+function stalkAnother() {
+  document.getElementById('file-wrap').classList.remove('show');
+  document.getElementById('gh-input').value = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(() => document.getElementById('gh-input').focus(), 400);
+}
+</script>
+</body>
+</html>
